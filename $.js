@@ -3,7 +3,7 @@
 /**
  * @typedef {{
  *  element: HTMLElement;
- *  css: ((property: string, value: string) => ThisType) | ((property: object) => ThisType);
+ *  css: ((property: string, value: string) => ThisType) | ((property: {[key:string]:string}) => ThisType);
  *  on<K extends keyof HTMLElementEventMap>(event: K, callback: (event: HTMLElementEventMap[K]) => void): ThisType;
  *  html: (data?: string) => string;
  *  text: (data?: string) => string;
