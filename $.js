@@ -2,27 +2,41 @@
 
 /**
  * @typedef {{
- *  element: Element;
+ *  element: HTMLElement;
  *  css: ((property: string, value: string) => ThisType) | ((property: object) => ThisType);
  *  on<K extends keyof HTMLElementEventMap>(event: K, callback: (event: HTMLElementEventMap[K]) => void): ThisType;
  *  html: (data?: string) => string;
  *  text: (data?: string) => string;
+ *  append: (data: string | HTMLElement) => ThisType;
+ *  prepend: (data: string | HTMLElement) => ThisType;
+ *  childrens: () => QueryList;
+ *  parent: () => Query;
+ *  getAttribute: (name: string) => string;
+ *  setAttribute: (name: string, value: string) => ThisType;
+ *  removeAttribute: (name: string) => ThisType;
+ *  clone: (deep?: boolean) => Query;
+ *  remove: () => ThisType;
  * }} Query
  * @typedef { Query & {
- * 	forEach: (item: Query, index: number, list: QueryList) => void;
+ * 	forEach:((callback:(element: Query, index: number, array: QueryList) => void) => ThisType) | ((callback:(element: Query, index: number) => void) => ThisType) | ((callback: (element: Query) => void) => ThisType);
  * 	[key:number]: Query
  * 	[Symbol.iterator]: () => IterableIterator<Query>;
  * }} QueryList
 */
 
 /**
- * @param {string | HTMLElement} node
+ * @typedef {HTMLElement | Node | ParentNode} QueryNode
+*/
+
+/**
+ * @param {string | NodeList | QueryNode | null} node
  * @returns {QueryList}
  */
 export function $(node) {
 	let elements = [];
 	if (typeof node === 'string') elements.push(...document.querySelectorAll(node));
 	if (node instanceof HTMLElement) elements.push(node);
+	if (node instanceof NodeList) elements.push(...node);
 
 	// @ts-ignore
 	let query = new Proxy(elements.map($.ƒ), {
@@ -34,6 +48,8 @@ export function $(node) {
 					target.forEach(callback);
 					return query;
 				};
+			if (property == 'element') return target[0];
+			if (property == 'getAttribute') return name => target[0].getAttribute(name);
 			return (...args) => {
 				target.forEach(q => {
 					q[property](...args);
@@ -58,7 +74,6 @@ $.ƒ = function (element) {
 			fn(...args) || query;
 	query = new Proxy(element, {
 		get(target, property) {
-			console.log(property);
 			if (property == 'forEach') return;
 			if (property == 'element') {
 				return target;
@@ -88,6 +103,56 @@ $.ƒ = function (element) {
 					target.innerText = data;
 					return target.innerText;
 				});
+			}
+			if (property == 'append') {
+				return _(data => {
+					target.append(data);
+					return target;
+				});
+			}
+			if(property == 'prepend'){
+				return _(data => {
+					target.prepend(data);
+					return target;
+				})
+			}
+			if(property == 'childrens'){
+				return _( data => {
+					return $(target.childNodes)
+				})
+			}
+			if(property == 'parent'){
+				return _(data => {
+					return $(target.parentNode)
+				})
+			}
+			if (property == 'getAttribute') {
+				return _(name => {
+					return target.getAttribute(name);
+				});
+			}
+			if(property == 'removeAttribute'){
+				return _(name => {
+					target.removeAttribute(name);
+					return target;
+				})
+			}
+			if(property == 'setAttribute'){
+				return _((name, value) => {
+					target.setAttribute(name, value);
+					return target;
+				})
+			}
+			if(property == 'remove'){
+				return _(() => {
+					target.remove();
+					return target;
+				})
+			}
+			if(property == 'clone'){
+				return _(v => {
+					return $(target.cloneNode(v));
+				})
 			}
 			return _(callback => {
 				query.on(property, (...args) => {
