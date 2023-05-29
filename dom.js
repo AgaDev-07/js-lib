@@ -60,6 +60,7 @@ function addEventListeners(node, props = {}) {
  * @return {HTMLElement}
  */
 export function createElement(node) {
+	if(!node) return;
 	if (typeof node === 'string' || typeof node === 'number') {
 		return document.createTextNode(node);
 	}
@@ -77,7 +78,7 @@ export function createElement(node) {
 
 	addEventListeners(element, node.props);
 
-	node.childrens && node.childrens.map(createElement).forEach(child => element.appendChild(child));
+	node.childrens && node.childrens.map(createElement).forEach(child => child && element.appendChild(child));
 
 	return element;
 }
