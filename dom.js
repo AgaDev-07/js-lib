@@ -65,13 +65,10 @@ export function createElement(node) {
 	}
 	if (node instanceof HTMLElement) return node;
 
-	if (node.childrens && node.childrens.length > 0) {
-		node.props.childrens = node.props.childrens || [];
-		node.props.childrens.push(...node.childrens.map(createElement));
-	}
-
 	if (typeof node.type === 'function') {
-		return createElement(node.type(node.props));
+		const nodeDom = node.type(node.props);
+		nodeDom.childrens = node.childrens;
+		return createElement(nodeDom);
 	}
 
 	const element = document.createElement(node.type);
@@ -79,6 +76,9 @@ export function createElement(node) {
 	setAttributes(element, node.props);
 
 	addEventListeners(element, node.props);
+
+	node.childrens && node.childrens.map(createElement).forEach(child => element.appendChild(child));
+
 	return element;
 }
 /**
