@@ -51,3 +51,13 @@ export const List = {
         return result;
     }
 };
+export function getRuntime(){
+	// Node.js
+	if(globalThis.Buffer) return 'Node.js';
+	// Deno
+	if(globalThis.Deno) return 'Deno';
+	// Bun.js
+	if(globalThis.Bun) return 'Bun.js';
+	// Browser
+	return 'Browser';
+}
